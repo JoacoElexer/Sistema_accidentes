@@ -251,7 +251,7 @@ map.on("click", function (event) {
 
     coordinateIndicator.textContent =
         `Coordenadas seleccionadas: ${latitude}, ${longitude}`;
-    showTemproraryMarker(latitude, longitude);
+        showTemporaryMarker(latitude, longitude);
 })
 
 function showTemporaryMarker(latitude, longitude) {
@@ -271,4 +271,16 @@ function showTemporaryMarker(latitude, longitude) {
         )
         .addTo(selectionLayer)
         .openPopup();
+
+    temporaryMarker.on("dragend", function(event){
+        const position = event.target.getLatLng();
+        const newLatitude = Number(position.lat.toFixed(6));
+        const newLongitude = Number(position.lng.toFixed(6));
+
+        latitudeInput.value = newLatitude;
+        longitudeInput.value = newLongitude;
+
+        coordinateIndicator.textContent =
+        `Coordenadas ajustadas: ${newLatitude}, ${newLongitude}`;
+    });
 }
