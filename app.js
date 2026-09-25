@@ -31,26 +31,7 @@ const CATEGORY_CONFIG = {
 //Creacion de rrgwlo de inicidentes
 
 let incidents = [
-    {
-        id: "INC-001",
-        title: "Bache frente a la universidad",
-        category: "bache",
-        description: "Bache profundo que dificulta el paso de vehiculos",
-        status: "pendiente",
-        latitude: 21.1248,
-        longitude: -101.6812,
-        createdAt: "2026-01-15"
-    },
-    {
-        id: "INC-002",
-        title: "se cayo la luz",
-        category: "alumbrado",
-        description: "se cayo doña luz",
-        status: "pendiente",
-        latitude: 21.1248,
-        longitude: -101.6812,
-        createdAt: "2026-01-15"
-    },
+
     {
         id: "INC-003",
         title: "accidente jotas",
@@ -77,8 +58,8 @@ let incidents = [
         category: "accidente",
         description: "Choque menor, se recomienda circular con protección",
         status: "atendido",
-        latitude: 21.1213,
-        longitude: -101.6923,
+        latitude: 21.1379,
+        longitude: -101.6867,
         createdAt: "2026-01-19"
     },
     {
@@ -87,8 +68,8 @@ let incidents = [
         category: "basura",
         description: "Se observa basura en la vía que dificulta el paso de vehículos",
         status: "pendiente",
-        latitude: 21.1185,
-        longitude: -101.6897,
+        latitude: 21.1480,
+        longitude: -101.6590,
         createdAt: "2026-01-15"
     },
     {
@@ -97,8 +78,8 @@ let incidents = [
         category: "fuga",
         description: "Se observa una fuga de agua en la calle principal que está afectando el tránsito vehicular",
         status: "pendiente",
-        latitude: 21.1202,
-        longitude: -101.6875,
+        latitude: 21.1168,
+        longitude: -101.6588,
         createdAt: "2026-01-16"
     },
     {
@@ -107,30 +88,11 @@ let incidents = [
         category: "alumbrado",
         description: "Alumbrado defectuoso en la calle principal",
         status: "pendiente",
-        latitude: 21.1213,
-        longitude: -101.6923,
+        latitude: 21.1188,
+        longitude: -101.7076,
         createdAt: "2026-01-19"
     },
-    {
-        id: "INC-009",
-        title: "Bache en la avenida principal",
-        category: "bache",
-        description: "Bache en la avenida principal que dificulta el paso de vehículos",
-        status: "pendiente",
-        latitude: 21.1185,
-        longitude: -101.6897,
-        createdAt: "2026-01-15"
-    },
-    {
-        id: "INC-010",
-        title: "Basura acumulada en la calle secundaria",
-        category: "basura",
-        description: "Basura acumulada en la calle secundaria que está afectando el tránsito peatonal",
-        status: "pendiente",
-        latitude: 21.1202,
-        longitude: -101.6875,
-        createdAt: "2026-01-16"
-    }
+  
 ]
 
 const incidentForm = document.getElementById("incident-form");
@@ -151,8 +113,11 @@ const emptyMessage = document.getElementById("empty-message");
 const resultsCounter = document.getElementById("results-counter");
 
 const statTotal = document.getElementById("stat-total");
+statTotal.textContent = incidents.length;
 const statPending = document.getElementById("stat-pending");
+statPending.textContent = incidents.filter(incident => incident.status === "pendiente").length;
 const statResolved = document.getElementById("stat-resolved");
+statResolved.textContent = incidents.filter(incident => incident.status === "atendido").length;
 
 const formTitle = document.getElementById("form-title");
 const formModeBadge = document.getElementById("form-mode-badge");
@@ -284,3 +249,33 @@ function showTemporaryMarker(latitude, longitude) {
         `Coordenadas ajustadas: ${newLatitude}, ${newLongitude}`;
     });
 }
+
+function mostrarIncidentes() {
+    incidents.forEach(function (incident) {
+        const categoryConfig = CATEGORY_CONFIG[incident.category];
+        const marker = L.circleMarker(
+            [incident.latitude, incident.longitude],
+            {
+                radius: 9,
+                color: categoryConfig.color,
+                fillColor: categoryConfig.color,
+                fillOpacity: 0.7
+            }
+        );
+        marker
+            .bindTooltip(incident.title)
+            .bindPopup(`
+                <strong>Id:</strong> ${incident.id}<br>
+                <strong>Nombre:</strong> ${incident.title}<br>
+                <strong>Categoría:</strong> ${categoryConfig.label}<br>
+                <strong>Estado:</strong> ${incident.status}<br>
+                <strong>Descripción:</strong> ${incident.description}<br>
+                <strong>Coordenadas:</strong> ${incident.latitude}, ${incident.longitude}
+            `);
+        incidentsLayer.addLayer(marker);
+        console.log("Incidente con coordenadas: ", incident.latitude,", ", incident.longitude," creado.");
+        console.log("Id de incidente: ",incident.id);
+    });
+}
+
+mostrarIncidentes();
