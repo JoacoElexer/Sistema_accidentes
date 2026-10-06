@@ -540,4 +540,4 @@ fitMapButton.addEventListener("click", function () {
 
 
 mostrarIncidentes();
-resetForm();
+resetForm(); 
