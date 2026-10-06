@@ -313,6 +313,25 @@ function renderMarkers(filtered) {
                 fillOpacity: 0.7
             }
         );
+        const actions = document.createElement("div");
+        const editButton = document.createElement("button");
+        editButton.type= "button";
+        editButton.className = "popup button-primary button-small";
+        editButton.textContent = "Editar";
+        editButton.addEventListener("click", function(){
+            startEditingIncident(incident.id);
+            map.closePopup();
+        });
+        actions.className = "popup-actions";
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "popup button-danger button-small";
+        deleteButton.textContent = "Eliminar";
+        deleteButton.addEventListener("click", function(){
+            deleteIncident(incident.id);
+            map.closePopup();
+        });
+        actions.append(editButton, deleteButton);
         marker
             .bindTooltip(incident.title)
             .bindPopup(`
@@ -321,7 +340,9 @@ function renderMarkers(filtered) {
                 <strong>Categoría:</strong> ${categoryConfig.label}<br>
                 <strong>Estado:</strong> ${formatStatus(incident.status)}<br>
                 <strong>Descripción:</strong> ${incident.description}<br>
-                <strong>Coordenadas:</strong> ${incident.latitude}, ${incident.longitude}
+                <strong class="coordinates-text">Coordenadas:</strong> ${incident.latitude}, ${incident.longitude}
+                <br><br>
+                ${actions.innerHTML}
             `);
         incidentsLayer.addLayer(marker);
     });
