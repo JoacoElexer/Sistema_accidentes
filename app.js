@@ -278,4 +278,88 @@ function mostrarIncidentes() {
     });
 }
 
+function createIncident(data) {
+    const id = generateIncidentId();
+    const title = data.title;
+    const category = data.category;
+    const description = data.description;
+    const status = data.status;
+    const latitude = data.latitude;
+    const longitude = data.longitude;
+    const createdAt = getCurrentDate();
+
+    incidents.push({
+        id,
+        title,
+        category,
+        description,
+        status,
+        latitude,
+        longitude,
+        createdAt
+    });
+};
+
+function generateIncidentId() {
+    const id = "INC-" + Date.now() + Math.floor(Math.random() * 1000);
+    return id;
+}
+
+function getCurrentDate() {
+    const currentDate = new Date();
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+    const day = String(currentDate.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+function startEditngIncident(id) {
+    const incident = incidents.find(incident => incident.id === id);
+    if (incident) {
+        incidentForm.title.value = incident.title;
+        incidentForm.category.value = incident.category;
+        incidentForm.description.value = incident.description;
+        incidentForm.status.value = incident.status;
+        incidentForm.latitude.value = incident.latitude;
+        incidentForm.longitude.value = incident.longitude;
+    }
+}
+
+function updateIncident(id, changes) {
+    const incident = incidents.find(incident => incident.id === id);
+    if (incident) {
+        Object.assign(incident, changes);
+    }
+}
+
+function deleteIncident(id) {
+    const incident = incidents.find(incident => incident.id === id);
+    if (incident) {
+        incidents = incidents.filter(incident => incident.id !== id);
+    }
+}
+// -------------------------------------------
+function resetForm() {
+    incidentForm.reset();
+    hideFormMessage();
+}
+
+function showFormMessage(message) {
+    formMessage.textContent = message;
+    formMessage.style.display = "block";
+}
+
+function hideFormMessage() {
+    formMessage.style.display = "none";
+}
+
+function formatStatus(status) {
+    if (status === "pendiente") {
+        return "Pendiente";
+    } else if (status === "atendido") {
+        return "Atendido";
+    }
+}
+
+
 mostrarIncidentes();
