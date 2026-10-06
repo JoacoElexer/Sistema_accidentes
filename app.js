@@ -108,16 +108,13 @@ const searchInput = document.getElementById("search-input");
 const categoryFilter = document.getElementById("category-filter");
 const statusFilter = document.getElementById("status-filter");
 
-const incidentList = document.getElementById("incident-list");
+const incidentList = document.getElementById("incidents-list");
 const emptyMessage = document.getElementById("empty-message");
 const resultsCounter = document.getElementById("results-counter");
 
 const statTotal = document.getElementById("stat-total");
-statTotal.textContent = incidents.length;
 const statPending = document.getElementById("stat-pending");
-statPending.textContent = incidents.filter(incident => incident.status === "pendiente").length;
 const statResolved = document.getElementById("stat-resolved");
-statResolved.textContent = incidents.filter(incident => incident.status === "atendido").length;
 
 const formTitle = document.getElementById("form-title");
 const formModeBadge = document.getElementById("form-mode-badge");
@@ -154,7 +151,6 @@ const humanitarianLayer = L.tileLayer(
 );
 
 streetLayer.addTo(map);
-humanitarianLayer.addTo(map);
 
 // Gestionar grupos de capas
 
@@ -250,9 +246,64 @@ function showTemporaryMarker(latitude, longitude) {
     });
 }
 
-function mostrarIncidentes() {
-    incidents.forEach(function (incident) {
-        const categoryConfig = CATEGORY_CONFIG[incident.category];
+function getFilteredIncidents() {
+    const searchTerm = searchInput.value.trim().toLowerCase();
+    const categoryValue = categoryFilter.value;
+    const statusValue = statusFilter.value;
+
+    return incidents.filter(function (incident) {
+        const matchesCategory = categoryValue === "all" || incident.category === categoryValue;
+        const matchesStatus = statusValue === "all" || incident.status === statusValue;
+        const matchesSearch = searchTerm === "" ||
+            incident.title.toLowerCase().includes(searchTerm) ||
+            incident.description.toLowerCase().includes(searchTerm) ||
+            incident.category.toLowerCase().includes(searchTerm);
+        return matchesCategory && matchesStatus && matchesSearch;
+    });
+}
+
+function renderStats() {
+    statTotal.textContent = incidents.length;
+    statPending.textContent = incidents.filter(incident => incident.status === "pendiente").length;
+    statResolved.textContent = incidents.filter(incident => incident.status === "atendido").length;
+}
+
+function renderList(filtered) {
+    const list = filtered || getFilteredIncidents();
+    incidentList.innerHTML = "";
+
+    resultsCounter.textContent = `${list.length} resultado${list.length === 1 ? "" : "s"}`;
+    emptyMessage.hidden = list.length !== 0;
+
+    list.forEach(function (incident) {
+        const categoryConfig = CATEGORY_CONFIG[incident.category] || { label: incident.category, color: "#667085" };
+        const card = document.createElement("article");
+        card.className = "incident-card";
+        card.style.borderLeftColor = categoryConfig.color;
+        card.innerHTML = `
+            <div class="incidents-card-header">
+                <h3>${incident.title}</h3>
+                <span class="badge ${incident.status === "pendiente" ? "badge-pending" : "badge-resolved"}">${formatStatus(incident.status)}</span>
+            </div>
+            <p class="incidents-description">${incident.description}</p>
+            <div class="incidents-meta">
+                <span class="badge badge-category">${categoryConfig.label}</span>
+                <span class="coordinates-text">${incident.latitude}, ${incident.longitude}</span>
+            </div>
+            <div class="incident-actions">
+                <button type="button" class="button button-secondary button-small" data-action="edit" data-id="${incident.id}">Editar</button>
+                <button type="button" class="button button-danger button-small" data-action="delete" data-id="${incident.id}">Eliminar</button>
+            </div>
+        `;
+        incidentList.appendChild(card);
+    });
+}
+
+function renderMarkers(filtered) {
+    const list = filtered || getFilteredIncidents();
+    incidentsLayer.clearLayers();
+    list.forEach(function (incident) {
+        const categoryConfig = CATEGORY_CONFIG[incident.category] || { label: incident.category, color: "#667085" };
         const marker = L.circleMarker(
             [incident.latitude, incident.longitude],
             {
@@ -268,41 +319,53 @@ function mostrarIncidentes() {
                 <strong>Id:</strong> ${incident.id}<br>
                 <strong>Nombre:</strong> ${incident.title}<br>
                 <strong>Categoría:</strong> ${categoryConfig.label}<br>
-                <strong>Estado:</strong> ${incident.status}<br>
+                <strong>Estado:</strong> ${formatStatus(incident.status)}<br>
                 <strong>Descripción:</strong> ${incident.description}<br>
                 <strong>Coordenadas:</strong> ${incident.latitude}, ${incident.longitude}
             `);
         incidentsLayer.addLayer(marker);
-        console.log("Incidente con coordenadas: ", incident.latitude,", ", incident.longitude," creado.");
-        console.log("Id de incidente: ",incident.id);
     });
 }
 
-function createIncident(data) {
-    const id = generateIncidentId();
-    const title = data.title;
-    const category = data.category;
-    const description = data.description;
-    const status = data.status;
-    const latitude = data.latitude;
-    const longitude = data.longitude;
-    const createdAt = getCurrentDate();
+function renderApp() {
+    const filtered = getFilteredIncidents();
+    renderStats();
+    renderList(filtered);
+    renderMarkers(filtered);
+}
 
-    incidents.push({
-        id,
-        title,
-        category,
-        description,
-        status,
-        latitude,
-        longitude,
-        createdAt
-    });
-};
+function mostrarIncidentes() {
+    renderApp();
+}
+
+function centerMapOnIncident(latitude, longitude) {
+    map.setView([latitude, longitude], 16);
+}
+
+function createIncident(data) {
+    const newIncident = {
+        id: generateIncidentId(),
+        title: data.title,
+        category: data.category,
+        description: data.description,
+        status: data.status,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        createdAt: getCurrentDate()
+    };
+
+    incidents.push(newIncident);
+    renderApp();
+    resetForm();
+    showFormMessage("Incidente registrado exitosamente.", "success");
+    centerMapOnIncident(newIncident.latitude, newIncident.longitude);
+    return newIncident;
+}
 
 function generateIncidentId() {
-    const id = "INC-" + Date.now() + Math.floor(Math.random() * 1000);
-    return id;
+    const timePart = Date.now().toString(16).toUpperCase().slice(-8).padStart(8, "0");
+    const randomPart = String(Math.floor(Math.random() * 1000)).padStart(3, "0");
+    return `INC-${timePart}-${randomPart}`;
 }
 
 function getCurrentDate() {
@@ -313,44 +376,101 @@ function getCurrentDate() {
     return `${year}-${month}-${day}`;
 }
 
-function startEditngIncident(id) {
+function startEditingIncident(id) {
     const incident = incidents.find(incident => incident.id === id);
-    if (incident) {
-        incidentForm.title.value = incident.title;
-        incidentForm.category.value = incident.category;
-        incidentForm.description.value = incident.description;
-        incidentForm.status.value = incident.status;
-        incidentForm.latitude.value = incident.latitude;
-        incidentForm.longitude.value = incident.longitude;
+    if (!incident) {
+        showFormMessage("No se encontró el incidente.", "error");
+        return null;
     }
+    incidentIdInput.value = incident.id;
+    titleInput.value = incident.title;
+    categoryInput.value = incident.category;
+    descriptionInput.value = incident.description;
+    statusInput.value = incident.status;
+    latitudeInput.value = incident.latitude;
+    longitudeInput.value = incident.longitude;
+
+    formTitle.textContent = "Editar incidente";
+    formModeBadge.textContent = "Editando";
+    formModeBadge.classList.add("editing");
+    saveButton.textContent = "Actualizar incidente";
+    cancelButton.hidden = false;
+
+    coordinateIndicator.textContent =
+        `Editando ubicación: ${incident.latitude}, ${incident.longitude}`;
+    showTemporaryMarker(incident.latitude, incident.longitude);
+    centerMapOnIncident(incident.latitude, incident.longitude);
+    return incident;
+}
+
+// Alias con el nombre anterior (tenía typo) para no romper referencias existentes.
+function startEditngIncident(id) {
+    return startEditingIncident(id);
 }
 
 function updateIncident(id, changes) {
     const incident = incidents.find(incident => incident.id === id);
-    if (incident) {
-        Object.assign(incident, changes);
+    if (!incident) {
+        showFormMessage("No se encontró el incidente a actualizar.", "error");
+        return null;
     }
+    Object.assign(incident, changes);
+    renderApp();
+    resetForm();
+    showFormMessage("Incidente actualizado exitosamente.", "success");
+    centerMapOnIncident(incident.latitude, incident.longitude);
+    return incident;
 }
 
 function deleteIncident(id) {
     const incident = incidents.find(incident => incident.id === id);
-    if (incident) {
-        incidents = incidents.filter(incident => incident.id !== id);
+    if (!incident) {
+        showFormMessage("No se encontró el incidente a eliminar.", "error");
+        return false;
     }
+    const confirmed = confirm(`¿Eliminar el incidente "${incident.title}" (${incident.id})?`);
+    if (!confirmed) {
+        return false;
+    }
+    incidents = incidents.filter(item => item.id !== id);
+    if (incidentIdInput.value === id) {
+        resetForm();
+    }
+    renderApp();
+    showFormMessage("Incidente eliminado correctamente.", "success");
+    return true;
 }
 // -------------------------------------------
+let formMessageTimeout = null;
+
 function resetForm() {
     incidentForm.reset();
+    incidentIdInput.value = "";
+    formTitle.textContent = "Registrar incidente";
+    formModeBadge.textContent = "Nuevo";
+    formModeBadge.classList.remove("editing");
+    saveButton.textContent = "Guardar incidente";
+    cancelButton.hidden = true;
+    selectionLayer.clearLayers();
+    coordinateIndicator.textContent = "Haz click en el mapa para seleccionar las coordenadas";
     hideFormMessage();
 }
 
-function showFormMessage(message) {
+function showFormMessage(message, type) {
+    const messageType = type || "success";
     formMessage.textContent = message;
-    formMessage.style.display = "block";
+    formMessage.className = `form-message ${messageType}`;
+    formMessage.hidden = false;
+    if (formMessageTimeout) {
+        clearTimeout(formMessageTimeout);
+    }
+    formMessageTimeout = setTimeout(hideFormMessage, 4000);
 }
 
 function hideFormMessage() {
-    formMessage.style.display = "none";
+    formMessage.hidden = true;
+    formMessage.textContent = "";
+    formMessage.className = "form-message";
 }
 
 function formatStatus(status) {
@@ -359,7 +479,65 @@ function formatStatus(status) {
     } else if (status === "atendido") {
         return "Atendido";
     }
+    return status;
 }
+
+incidentForm.addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    const data = {
+        title: titleInput.value.trim(),
+        category: categoryInput.value,
+        description: descriptionInput.value.trim(),
+        status: statusInput.value,
+        latitude: parseFloat(latitudeInput.value),
+        longitude: parseFloat(longitudeInput.value)
+    };
+
+    if (!data.title || !data.category || !data.description ||
+        Number.isNaN(data.latitude) || Number.isNaN(data.longitude)) {
+        showFormMessage("Completa todos los campos y selecciona una ubicación en el mapa.", "error");
+        return;
+    }
+
+    const editingId = incidentIdInput.value;
+    if (editingId) {
+        updateIncident(editingId, data);
+    } else {
+        createIncident(data);
+    }
+});
+
+cancelButton.addEventListener("click", function () {
+    resetForm();
+});
+
+incidentList.addEventListener("click", function (event) {
+    const button = event.target.closest("button[data-action]");
+    if (!button) {
+        return;
+    }
+    const id = button.getAttribute("data-id");
+    if (button.getAttribute("data-action") === "edit") {
+        startEditingIncident(id);
+    } else if (button.getAttribute("data-action") === "delete") {
+        deleteIncident(id);
+    }
+});
+
+searchInput.addEventListener("input", renderApp);
+categoryFilter.addEventListener("change", renderApp);
+statusFilter.addEventListener("change", renderApp);
+
+fitMapButton.addEventListener("click", function () {
+    if (incidents.length === 0) {
+        map.setView(INITIL_CENTER, INITIL_ZOOM);
+        return;
+    }
+    const bounds = L.latLngBounds(incidents.map(incident => [incident.latitude, incident.longitude]));
+    map.fitBounds(bounds.pad(0.2));
+});
 
 
 mostrarIncidentes();
+resetForm();

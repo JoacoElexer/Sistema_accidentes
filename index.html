@@ -82,7 +82,7 @@
                         <select id="status-filter">
                             <option value="all">Todos</option>
                             <option value="pendiente">Pendiente</option>
-                            <option vaule="atendido">Atendido</option>
+                            <option value="atendido">Atendido</option>
                         </select>
                     </div>
                 </div>
@@ -101,7 +101,7 @@
                     Haz click sobre el mapa para seleccionar la ubicación
                 </p>
 
-                <form id="incidente-form">
+                <form id="incident-form">
                     <input type="hidden" id="incident-id">
                     <div class="form-group">
                         <label for="title-input">Nombre del incidente</label>
@@ -184,9 +184,10 @@
                         Guardar incidente
                         </button>
                         <button
-                            type="submit"
+                            type="button"
                             id="cancel-button"
                             class="button button-secondary"
+                            hidden
                         >
                             Cancelar Edición
                         </button>
