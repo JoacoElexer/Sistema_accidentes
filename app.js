@@ -173,7 +173,6 @@ L.control.layers(baseLayers, overlays, {
 }).addTo(map);
 
 L.control.scale({
-    collapsed: false,
     position: "bottomright"
 }).addTo(map);
 
@@ -187,10 +186,10 @@ legend.onAdd = function () {
     let content = "<h4>Categorías</h4>";
     Object.entries(CATEGORY_CONFIG).forEach(([key, config]) => {
         content += `
-        <div class = "legend-item">
+        <div class="legend-item">
             <span
-            class = "legend-color"
-            style = "background:${config.color}">
+            class="legend-color"
+            style="background-color:${config.color}">
             </span>
             <span>${config.label}</span>
         </div>
@@ -282,12 +281,12 @@ function renderList(filtered) {
         card.style.borderLeftColor = categoryConfig.color;
         card.innerHTML = `
             <div class="incidents-card-header">
-                <h3>${incident.title}</h3>
-                <span class="badge ${incident.status === "pendiente" ? "badge-pending" : "badge-resolved"}">${formatStatus(incident.status)}</span>
+                <h3>${escapeHtml(incident.title)}</h3>
+                <span class="badge ${incident.status === "pendiente" ? "badge-pending" : "badge-resolved"}">${escapeHtml(formatStatus(incident.status))}</span>
             </div>
-            <p class="incidents-description">${incident.description}</p>
+            <p class="incidents-description">${escapeHtml(incident.description)}</p>
             <div class="incidents-meta">
-                <span class="badge badge-category">${categoryConfig.label}</span>
+                <span class="badge badge-category">${escapeHtml(categoryConfig.label)}</span>
                 <span class="coordinates-text">${incident.latitude}, ${incident.longitude}</span>
             </div>
             <div class="incident-actions">
@@ -297,6 +296,15 @@ function renderList(filtered) {
         `;
         incidentList.appendChild(card);
     });
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 function renderMarkers(filtered) {
@@ -310,40 +318,35 @@ function renderMarkers(filtered) {
                 radius: 9,
                 color: categoryConfig.color,
                 fillColor: categoryConfig.color,
-                fillOpacity: 0.7
+                fillOpacity: 0.7,
+                bubblingMouseEvents: false
             }
         );
-        const actions = document.createElement("div");
-        const editButton = document.createElement("button");
-        editButton.type= "button";
-        editButton.className = "popup button-primary button-small";
-        editButton.textContent = "Editar";
-        editButton.addEventListener("click", function(){
+        const popupContainer = document.createElement("div");
+        popupContainer.className = "popup-content";
+        popupContainer.innerHTML = `
+                <h3>${escapeHtml(incident.title)}</h3>
+                <p><strong>Id:</strong> ${escapeHtml(incident.id)}</p>
+                <p><strong>Categoría:</strong> ${escapeHtml(categoryConfig.label)}</p>
+                <p><strong>Estado:</strong> ${escapeHtml(formatStatus(incident.status))}</p>
+                <p><strong>Descripción:</strong> ${escapeHtml(incident.description)}</p>
+                <p class="coordinates-text"><strong>Coordenadas:</strong> ${incident.latitude}, ${incident.longitude}</p>
+                <div class="popup-actions">
+                    <button type="button" class="button button-secondary button-small" data-action="edit">Editar</button>
+                    <button type="button" class="button button-danger button-small" data-action="delete">Eliminar</button>
+                </div>
+            `;
+        popupContainer.querySelector('[data-action="edit"]').addEventListener("click", function () {
+            map.closePopup();
             startEditingIncident(incident.id);
-            map.closePopup();
         });
-        actions.className = "popup-actions";
-        const deleteButton = document.createElement("button");
-        deleteButton.type = "button";
-        deleteButton.className = "popup button-danger button-small";
-        deleteButton.textContent = "Eliminar";
-        deleteButton.addEventListener("click", function(){
+        popupContainer.querySelector('[data-action="delete"]').addEventListener("click", function () {
+            map.closePopup();
             deleteIncident(incident.id);
-            map.closePopup();
         });
-        actions.append(editButton, deleteButton);
         marker
             .bindTooltip(incident.title)
-            .bindPopup(`
-                <strong>Id:</strong> ${incident.id}<br>
-                <strong>Nombre:</strong> ${incident.title}<br>
-                <strong>Categoría:</strong> ${categoryConfig.label}<br>
-                <strong>Estado:</strong> ${formatStatus(incident.status)}<br>
-                <strong>Descripción:</strong> ${incident.description}<br>
-                <strong class="coordinates-text">Coordenadas:</strong> ${incident.latitude}, ${incident.longitude}
-                <br><br>
-                ${actions.innerHTML}
-            `);
+            .bindPopup(popupContainer);
         incidentsLayer.addLayer(marker);
     });
 }
@@ -421,6 +424,7 @@ function startEditingIncident(id) {
         `Editando ubicación: ${incident.latitude}, ${incident.longitude}`;
     showTemporaryMarker(incident.latitude, incident.longitude);
     centerMapOnIncident(incident.latitude, incident.longitude);
+    incidentForm.scrollIntoView({ behavior: "smooth", block: "start" });
     return incident;
 }
 
