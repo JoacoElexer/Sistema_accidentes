@@ -428,11 +428,6 @@ function startEditingIncident(id) {
     return incident;
 }
 
-// Alias con el nombre anterior (tenía typo) para no romper referencias existentes.
-function startEditngIncident(id) {
-    return startEditingIncident(id);
-}
-
 function updateIncident(id, changes) {
     const incident = incidents.find(incident => incident.id === id);
     if (!incident) {
@@ -465,7 +460,7 @@ function deleteIncident(id) {
     showFormMessage("Incidente eliminado correctamente.", "success");
     return true;
 }
-// -------------------------------------------
+
 let formMessageTimeout = null;
 
 function resetForm() {
