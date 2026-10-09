@@ -31,10 +31,9 @@ const CATEGORY_CONFIG = {
 //Creacion de rrgwlo de inicidentes
 
 let incidents = [
-
     {
         id: "INC-003",
-        title: "accidente jotas",
+        title: "incendio en la vía pública",
         category: "accidente",
         description: "Bache profundo que dificulta el paso de vehiculos",
         status: "pendiente",
