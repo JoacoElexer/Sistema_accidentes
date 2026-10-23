@@ -25,4 +25,41 @@ router.get("/:id", (req, res) => {
     res.json({ success: true, data: hospitalsService.getById(req.params.id) });
 });
 
+
+router.post("/", (req, res) => {
+    const {
+        name,
+        type,
+        status,
+        description,
+        beds,
+        location
+    } = req.body ?? {};
+
+    if (
+        typeof name !== "string" || !name.trim() ||
+        typeof type !== "string" || !type.trim() ||
+        typeof status !== "string" || !status.trim() ||
+        typeof description !== "string" || !description.trim() ||
+        !Number.isInteger(beds) || beds < 0
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: "Datos de hospital inválidos"
+        });
+    }
+
+    const data = hospitalsService.create({
+        name: name.trim(),
+        type,
+        status,
+        description: description.trim(),
+        beds,
+        location
+    });
+
+    res.status(201).json({ success: true, data });
+});
+
+
 module.exports = router;

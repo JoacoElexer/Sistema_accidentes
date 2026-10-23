@@ -25,4 +25,48 @@ router.get("/:id", (req, res) => {
     res.json({ success: true, data: busStopsService.getById(req.params.id) });
 });
 
+
+router.post("/", (req, res, next) => {
+    try {
+        const {
+            name,
+            type,
+            status,
+            description,
+            routesCount,
+            location
+        } = req.body ?? {};
+
+        if (
+            typeof name !== "string" || !name.trim() ||
+            typeof type !== "string" || !type.trim() ||
+            typeof status !== "string" || !status.trim() ||
+            typeof description !== "string" || !description.trim() ||
+            !Number.isInteger(routesCount) || routesCount < 0
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "Datos de parada inválidos"
+            });
+        }
+
+        const data = busStopsService.create({
+            name,
+            type,
+            status,
+            description,
+            routesCount,
+            location
+        });
+
+        return res.status(201).json({
+            success: true,
+            data
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+
 module.exports = router;

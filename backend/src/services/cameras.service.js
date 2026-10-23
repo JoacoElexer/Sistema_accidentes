@@ -2,6 +2,7 @@
 
 const seed = require("../data/cameras.seed");
 const AppError = require("../utils/appError");
+const { randomUUID } = require("node:crypto");
 
 class CamerasService {
     constructor() {
@@ -60,6 +61,29 @@ class CamerasService {
                 properties,
             })),
         };
+    }
+
+    async create(data) {
+        const newDate = new Date().toISOString();
+        const newItem = {
+            id: randomUUID(),
+            name: data.name.trim(),
+            type: data.type,
+            status: data.status,
+            description: data.description.trim(),
+            routesCount: data.routesCount,
+            location: {
+                type: "Point",
+                coordinates: [
+                    Number(data.longitude),
+                    Number(data.latitude)
+                ]
+            },
+            createdAt: newDate,
+            updatedAt: newDate,
+        };
+        this.items.push(newItem);
+        return newItem;
     }
 }
 

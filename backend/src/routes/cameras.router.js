@@ -25,4 +25,40 @@ router.get("/:id", (req, res) => {
     res.json({ success: true, data: camerasService.getById(req.params.id) });
 });
 
+
+router.post("/", (req, res) => {
+    const {
+        name,
+        type,
+        status,
+        description,
+        rangeMeters,
+        location
+    } = req.body ?? {};
+
+    if (
+        typeof name !== "string" || !name.trim() ||
+        typeof type !== "string" || !type.trim() ||
+        typeof status !== "string" || !status.trim() ||
+        typeof description !== "string" || !description.trim()
+    ) {
+        return res.status(400).json({
+            success: false,
+            message: "Datos de cámara inválidos"
+        });
+    }
+
+    const data = camerasService.create({
+        name: name.trim(),
+        type,
+        status,
+        description: description.trim(),
+        rangeMeters,
+        location
+    });
+
+    res.status(201).json({ success: true, data });
+});
+
+
 module.exports = router;
