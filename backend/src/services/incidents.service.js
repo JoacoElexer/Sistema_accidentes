@@ -138,7 +138,7 @@ class IncidentsService {
         if (index === -1){
             throw new AppError(404, `No se encontro el incidente con id ${id}.`);
         }
-        this.incidents.delete(index, 1);
+        this.incidents.splice(index, 1);
     }
 }
 

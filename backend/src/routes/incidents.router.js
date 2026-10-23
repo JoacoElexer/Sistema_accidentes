@@ -29,4 +29,29 @@ router.post("/", validateIncident, (req, res) => {
     res.status(201).json({ success: true, data: incidentsService.create(req.body) });
 });
 
+
+router.patch("/:id", async (req, res) => {
+    const data = await incidentsService.update(
+        req.params.id,
+        req.body
+    );
+
+    res.json({
+        success: true,
+        message: "Incidente actualizado correctamente",
+        data
+    });
+});
+
+router.delete("/:id", async (req, res) => {
+    const data = await incidentsService.delete(req.params.id);
+
+    res.json({
+        success: true,
+        message: "Incidente eliminado correctamente",
+        data
+    });
+});
+
+
 module.exports = router;
