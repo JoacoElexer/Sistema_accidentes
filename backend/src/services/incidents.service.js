@@ -53,13 +53,71 @@ class IncidentsService {
         return incident;
     }
 
-    create(incidentData) {
+    create(data) {
+        const currentDate = new Date().toISOString();
         const newIncident = {
-            ...incidentData,
-            id: randomUUID(),
-            createdAt: new Date().toISOString(),
+            id: `INC-${randomUUID()}`,
+            title: data.title,
+            category: data.category,
+            description: data.description.trim(),
+            status: data.status,
+            location: {
+                type: "Point",
+                coordinates: [
+                    Number(data.longitude),
+                    Number(data.latitude)
+                ]
+            },
+            createdAt: currentDate,
+            updatedAt: currentDate
         }
         this.incidents.push(newIncident);
         return newIncident;
+    }
+
+    async update(id, changes) {
+        const index = this.incidents.findIndex(
+            (incident) => incident.id === id
+        );
+        if(index === -1){
+            throw new AppError(404, `No se encontro el incidente con id ${id}.`);
+        };
+        const currentIncident = this.incidents[index];
+        const currentLongitude = currentIncident.location.coordinates[0];
+        const currentLatitude = currentIncident.location.coordinates[1];
+        const updatedLongitude = changes.longitude !== undefined ? Number(changes.longitude) : currentLongitude;
+        const updatedLatitude = changes.latitude !== undefined ? Number(changes.latitude) : currentLatitude;
+        const updatedIncident = {
+            ...currentIncident,
+            ...(changes.title !== undefined && {
+                title: changes.title.trim()
+            }),
+            ...(changes.category !== undefined && {
+                category: changes.category.trim()
+            }),
+            ...(changes.description !== undefined && {
+                description: changes.description.trim()
+            }),
+            ...(changes.status !== undefined && {
+                status: changes.status.trim()
+            }),
+            location: {
+                type: "Point",
+                coordinates: [updatedLongitude, updatedLatitude]
+            },
+            updatedAt: new Date().toISOString()
+        }
+        this.incidents[index] = updatedIncident;
+        return updatedIncident;
+    }
+
+    async delete(id) {
+        const index = this.incidents.findIndex(
+            (incident) => incident.id === id
+        );
+        if (index === -1){
+            throw new AppError(404, `No se encontro el incidente con id ${id}.`);
+        }
+        this.incidents.delete(index, 1);
     }
 }
