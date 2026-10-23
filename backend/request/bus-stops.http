@@ -1,0 +1,16 @@
+@base = http://localhost:3000/api/bus-stops
+
+### Listar todos
+GET {{base}}
+
+### Filtrar por búsqueda, type y status
+GET {{base}}?search=terminal&type=troncal&status=operando
+
+### GeoJSON
+GET {{base}}/geojson
+
+### Por id
+GET {{base}}/BUS-001
+
+### Id inexistente (404)
+GET {{base}}/BUS-999

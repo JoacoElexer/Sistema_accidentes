@@ -1,0 +1,16 @@
+@base = http://localhost:3000/api/stations
+
+### Listar todos
+GET {{base}}
+
+### Filtrar por búsqueda, type y status
+GET {{base}}?search=bomberos&type=bomberos&status=activa
+
+### GeoJSON
+GET {{base}}/geojson
+
+### Por id
+GET {{base}}/STA-001
+
+### Id inexistente (404)
+GET {{base}}/STA-999

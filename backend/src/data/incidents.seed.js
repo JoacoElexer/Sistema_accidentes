@@ -67,3 +67,5 @@ const incidents = [
         updatedAt: "2026-01-19T12:00:00.000Z"
     }
 ];
+
+module.exports = incidents;

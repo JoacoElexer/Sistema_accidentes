@@ -10,6 +10,14 @@ class IncidentsService {
         this.incidents = structuredClone(seedIncidentes);
     }
 
+    normalizeText(value = "") {
+        return String(value)
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .trim();
+    }
+
     // Obtener todos y filtrar
     async getAll(filters = {}) {
         const{
@@ -19,7 +27,7 @@ class IncidentsService {
         } = filters;
 
         let result = [...this.incidents];
-        const notmalizedSearch = this.normalizedSearch(search);
+        const normalizedSearch = this.normalizeText(search);
         if(normalizedSearch){
             result = result.filter ((incident) => {
                 const searchableContent = this.normalizeText(
@@ -51,6 +59,18 @@ class IncidentsService {
             throw new AppError(404, `No se encontro el incidente con id ${id}`);
         }
         return incident;
+    }
+
+    async getGeoJSON(filters = {}) {
+        const incidents = await this.getAll(filters);
+        return {
+            type: "FeatureCollection",
+            features: incidents.map(({ location, ...properties }) => ({
+                type: "Feature",
+                geometry: location,
+                properties,
+            })),
+        };
     }
 
     create(data) {
@@ -121,3 +141,5 @@ class IncidentsService {
         this.incidents.delete(index, 1);
     }
 }
+
+module.exports = new IncidentsService()

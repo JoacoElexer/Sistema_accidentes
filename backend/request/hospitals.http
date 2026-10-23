@@ -1,0 +1,16 @@
+@base = http://localhost:3000/api/hospitals
+
+### Listar todos
+GET {{base}}
+
+### Filtrar por búsqueda, type y status
+GET {{base}}?search=hospital&type=hospital&status=operando
+
+### GeoJSON
+GET {{base}}/geojson
+
+### Por id
+GET {{base}}/HOS-001
+
+### Id inexistente (404)
+GET {{base}}/HOS-999

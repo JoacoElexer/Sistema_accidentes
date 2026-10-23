@@ -1,0 +1,25 @@
+@base = http://localhost:3000/api/incidents
+
+### Listar todos
+GET {{base}}
+
+### Filtrar
+GET {{base}}?search=transito&status=resuelto
+
+### GeoJSON
+GET {{base}}/geojson
+
+### Por id
+GET {{base}}/INC-001
+
+### Crear
+POST {{base}}
+Content-Type: application/json
+
+{
+  "title": "Prueba",
+  "category": "accidente",
+  "description": "Incidente de prueba",
+  "status": "pendiente",
+  "location": { "type": "Point", "coordinates": [-101.68, 21.12] }
+}

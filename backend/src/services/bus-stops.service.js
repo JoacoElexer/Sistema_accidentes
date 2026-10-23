@@ -1,0 +1,66 @@
+"use strict";
+
+const seed = require("../data/bus-stops.seed");
+const AppError = require("../utils/appError");
+
+class BusStopsService {
+    constructor() {
+        this.items = structuredClone(seed);
+    }
+
+    // Quita acentos, pasa a minúsculas y recorta espacios
+    normalizeText(value = "") {
+        return String(value)
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .trim();
+    }
+
+    async getAll(filters = {}) {
+        const { search = "", type = "all", status = "all" } = filters;
+
+        let result = [...this.items];
+        const normalizedSearch = this.normalizeText(search);
+
+        if (normalizedSearch) {
+            result = result.filter((item) => {
+                const searchableContent = this.normalizeText(
+                    `${item.name} ${item.description} ${item.type}`
+                );
+                return searchableContent.includes(normalizedSearch);
+            });
+        }
+        if (type !== "all") {
+            result = result.filter((item) => item.type === type);
+        }
+        if (status !== "all") {
+            result = result.filter((item) => item.status === status);
+        }
+
+        result.sort((a, b) => a.name.localeCompare(b.name, "es"));
+        return result;
+    }
+
+    getById(id) {
+        const item = this.items.find((entry) => entry.id === id);
+        if (!item) {
+            throw new AppError(404, `No se encontró parada de transporte con id ${id}`);
+        }
+        return item;
+    }
+
+    async getGeoJSON(filters = {}) {
+        const items = await this.getAll(filters);
+        return {
+            type: "FeatureCollection",
+            features: items.map(({ location, ...properties }) => ({
+                type: "Feature",
+                geometry: location,
+                properties,
+            })),
+        };
+    }
+}
+
+module.exports = new BusStopsService();
