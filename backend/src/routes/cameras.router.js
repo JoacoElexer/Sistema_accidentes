@@ -2,6 +2,7 @@
 
 const { Router } = require("express");
 const camerasService = require("../services/cameras.service");
+const validateResource = require("../middlewares/resource.validator");
 
 const router = Router();
 
@@ -60,5 +61,28 @@ router.post("/", (req, res) => {
     res.status(201).json({ success: true, data });
 });
 
+router.patch(
+    "/:id",
+    validateResource("camera", "update"),
+    (req, res) => {
+        const data = camerasService.update(req.params.id, req.body);
+
+        res.json({
+            success: true,
+            message: "camara actualizado correctamente",
+            data,
+        });
+    }
+);
+
+router.delete("/:id", (req, res) => {
+    const deleted = camerasService.delete(req.params.id);
+
+    res.status(200).json({
+        success: true,
+        message: "Cámara eliminada correctamente",
+        data: deleted
+    });
+});
 
 module.exports = router;

@@ -2,6 +2,7 @@
 
 const { Router } = require("express");
 const hospitalsService = require("../services/hospitals.service");
+const validateResource = require("../middlewares/resource.validator");
 
 const router = Router();
 
@@ -61,5 +62,28 @@ router.post("/", (req, res) => {
     res.status(201).json({ success: true, data });
 });
 
+router.patch(
+    "/:id",
+    validateResource("hospital", "update"),
+    (req, res) => {
+        const data = hospitalsService.update(req.params.id, req.body);
+
+        res.json({
+            success: true,
+            message: "Hospital actualizado correctamente",
+            data,
+        });
+    }
+);
+
+router.delete("/:id", (req, res) => {
+    const deleted = hospitalsService.delete(req.params.id);
+
+    res.status(200).json({
+        success: true,
+        message: "Hospital eliminado correctamente",
+        data: deleted
+    });
+});
 
 module.exports = router;

@@ -2,6 +2,7 @@
 
 const { Router } = require("express");
 const stationsService = require("../services/stations.service");
+const validateResource = require("../middlewares/resource.validator");
 
 const router = Router();
 
@@ -61,5 +62,28 @@ router.post("/", (req, res) => {
     res.status(201).json({ success: true, data });
 });
 
+router.patch(
+    "/:id",
+    validateResource("station", "update"),
+    (req, res) => {
+        const data = stationsService.update(req.params.id, req.body);
+
+        res.json({
+            success: true,
+            message: "Estación actualizada correctamente",
+            data,
+        });
+    }
+);
+
+router.delete("/:id", (req, res) => {
+    const deleted = stationsService.delete(req.params.id);
+
+    res.status(200).json({
+        success: true,
+        message: "Estación eliminada correctamente",
+        data: deleted
+    });
+});
 
 module.exports = router;

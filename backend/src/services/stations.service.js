@@ -1,3 +1,4 @@
+
 "use strict";
 
 const seed = require("../data/stations.seed");
@@ -9,7 +10,6 @@ class StationsService {
         this.items = structuredClone(seed);
     }
 
-    // Quita acentos, pasa a minúsculas y recorta espacios
     normalizeText(value = "") {
         return String(value)
             .normalize("NFD")
@@ -32,27 +32,36 @@ class StationsService {
                 return searchableContent.includes(normalizedSearch);
             });
         }
+
         if (type !== "all") {
             result = result.filter((item) => item.type === type);
         }
+
         if (status !== "all") {
             result = result.filter((item) => item.status === status);
         }
 
         result.sort((a, b) => a.name.localeCompare(b.name, "es"));
+
         return result;
     }
 
     getById(id) {
         const item = this.items.find((entry) => entry.id === id);
+
         if (!item) {
-            throw new AppError(404, `No se encontró estación de emergencia con id ${id}`);
+            throw new AppError(
+                404,
+                `No se encontró estación de emergencia con id ${id}`
+            );
         }
+
         return item;
     }
 
     async getGeoJSON(filters = {}) {
         const items = await this.getAll(filters);
+
         return {
             type: "FeatureCollection",
             features: items.map(({ location, ...properties }) => ({
@@ -63,27 +72,65 @@ class StationsService {
         };
     }
 
-    async create(data) {
-        const newDate = new Date().toISOString();
+    create(data) {
+        const now = new Date().toISOString();
+
         const newItem = {
-            id: randomUUID(),
+            id: `STA-${randomUUID()}`,
             name: data.name.trim(),
             type: data.type,
             status: data.status,
             description: data.description.trim(),
-            routesCount: data.routesCount,
-            location: {
-                type: "Point",
-                coordinates: [
-                    Number(data.longitude),
-                    Number(data.latitude)
-                ]
-            },
-            createdAt: newDate,
-            updatedAt: newDate,
+            units: data.units,
+            location: structuredClone(data.location),
+            createdAt: now,
+            updatedAt: now,
         };
+
         this.items.push(newItem);
+
         return newItem;
+    }
+
+    update(id, changes) {
+        const item = this.getById(id);
+
+        const allowedFields = [
+            "name",
+            "type",
+            "status",
+            "description",
+            "units",
+            "location",
+        ];
+
+        for (const field of allowedFields) {
+            if (changes[field] !== undefined) {
+                item[field] =
+                    field === "location"
+                        ? structuredClone(changes[field])
+                        : changes[field];
+            }
+        }
+
+        item.updatedAt = new Date().toISOString();
+
+        return item;
+    }
+
+    delete(id) {
+        const index = this.items.findIndex((item) => item.id === id);
+
+        if (index === -1) {
+            throw new AppError(
+                404,
+                `No se encontró estación de emergencia con id ${id}`
+            );
+        }
+
+        const [deletedItem] = this.items.splice(index, 1);
+
+        return deletedItem;
     }
 }
 
