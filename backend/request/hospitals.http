@@ -3,14 +3,24 @@
 ### Listar todos
 GET {{base}}
 
-### Filtrar por búsqueda, type y status
+### Filtrar por búsqueda, tipo y estado
 GET {{base}}?search=hospital&type=hospital&status=operando
 
 ### GeoJSON
 GET {{base}}/geojson
 
-### Por id
+### Obtener por id (registro seed)
 GET {{base}}/HOS-001
 
-### Id inexistente (404)
-GET {{base}}/HOS-999
+### Crear
+# @name create
+POST {{base}}
+Content-Type: application/json
+{
+  "name": "Hospital CRUD",
+  "type": "hospital",
+  "status": "operando",
+  "description": "Registro temporal para validar CRUD",
+  "beds": 20,
+  "location": { "type": "Point", "coordinates": [-101.68, 21.12] }
+}

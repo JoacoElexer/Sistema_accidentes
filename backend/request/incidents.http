@@ -9,17 +9,17 @@ GET {{base}}?search=transito&status=resuelto
 ### GeoJSON
 GET {{base}}/geojson
 
-### Por id
+### Obtener por id (registro seed)
 GET {{base}}/INC-001
 
 ### Crear
+# @name create
 POST {{base}}
 Content-Type: application/json
-
 {
-  "title": "Prueba",
+  "title": "Incidente CRUD",
   "category": "accidente",
-  "description": "Incidente de prueba",
+  "description": "Registro temporal para validar CRUD",
   "status": "pendiente",
   "location": { "type": "Point", "coordinates": [-101.68, 21.12] }
 }

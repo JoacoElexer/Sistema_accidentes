@@ -1,6 +1,5 @@
 "use strict";
 
-// NOTA: coordenadas aproximadas [longitud, latitud]; verificar en un mapa antes de entregar.
 const busStops = [
     {
         id: "BUS-001",

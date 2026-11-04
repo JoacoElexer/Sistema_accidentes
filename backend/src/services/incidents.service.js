@@ -8,8 +8,27 @@ class IncidentsService {
     this.incidents = structuredClone(seedIncidentes);
   }
 
-  getAll() {
-    return this.incidents;
+  normalizeText(value = "") {
+    return String(value)
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .trim();
+  }
+
+  getAll(filters = {}) {
+    const { search = "", category = "all", status = "all" } = filters;
+    const normalizedSearch = this.normalizeText(search);
+
+    return this.incidents.filter((incident) => {
+      const matchesSearch = !normalizedSearch || this.normalizeText(
+        `${incident.title} ${incident.category} ${incident.description}`
+      ).includes(normalizedSearch);
+      const matchesCategory = category === "all" || incident.category === category;
+      const matchesStatus = status === "all" || incident.status === status;
+
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
   }
 
   getById(id) {
@@ -22,10 +41,10 @@ class IncidentsService {
     return incident;
   }
 
-  getGeoJSON() {
+  getGeoJSON(filters = {}) {
     return {
       type: "FeatureCollection",
-      features: this.incidents.map((incident) => ({
+      features: this.getAll(filters).map((incident) => ({
         type: "Feature",
         geometry: incident.location,
         properties: {

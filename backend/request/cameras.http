@@ -3,14 +3,24 @@
 ### Listar todos
 GET {{base}}
 
-### Filtrar por búsqueda, type y status
+### Filtrar por búsqueda, tipo y estado
 GET {{base}}?search=cámara&type=ptz&status=activa
 
 ### GeoJSON
 GET {{base}}/geojson
 
-### Por id
+### Obtener por id (registro seed)
 GET {{base}}/CAM-001
 
-### Id inexistente (404)
-GET {{base}}/CAM-999
+### Crear
+# @name create
+POST {{base}}
+Content-Type: application/json
+{
+  "name": "Cámara CRUD",
+  "type": "ptz",
+  "status": "activa",
+  "description": "Registro temporal para validar CRUD",
+  "rangeMeters": 250,
+  "location": { "type": "Point", "coordinates": [-101.68, 21.12] }
+}

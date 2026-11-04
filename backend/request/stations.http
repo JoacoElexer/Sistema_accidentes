@@ -3,14 +3,25 @@
 ### Listar todos
 GET {{base}}
 
-### Filtrar por búsqueda, type y status
+### Filtrar por búsqueda, tipo y estado
 GET {{base}}?search=bomberos&type=bomberos&status=activa
 
 ### GeoJSON
 GET {{base}}/geojson
 
-### Por id
+### Obtener por id (registro seed)
 GET {{base}}/STA-001
 
-### Id inexistente (404)
-GET {{base}}/STA-999
+### Crear
+# @name create
+POST {{base}}
+Content-Type: application/json
+
+{
+  "name": "Estación CRUD",
+  "type": "bomberos",
+  "status": "activa",
+  "description": "Registro temporal para validar CRUD",
+  "units": 2,
+  "location": { "type": "Point", "coordinates": [-101.68, 21.12] }
+}
