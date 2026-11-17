@@ -1,120 +1,182 @@
+"use strict";
 
-const { randomUUID } = require("crypto");
-const seedIncidentes = require("../data/incidents.seed");
+const {randomUUID}= require("node:crypto");
+
+const seedIncidents = require("../data/incidents.seed");
 const AppError = require("../utils/appError");
 
-class IncidentsService {
-  constructor() {
-    this.incidents = structuredClone(seedIncidentes);
-  }
-
-  normalizeText(value = "") {
-    return String(value)
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .trim();
-  }
-
-  getAll(filters = {}) {
-    const { search = "", category = "all", status = "all" } = filters;
-    const normalizedSearch = this.normalizeText(search);
-
-    return this.incidents.filter((incident) => {
-      const matchesSearch = !normalizedSearch || this.normalizeText(
-        `${incident.title} ${incident.category} ${incident.description}`
-      ).includes(normalizedSearch);
-      const matchesCategory = category === "all" || incident.category === category;
-      const matchesStatus = status === "all" || incident.status === status;
-
-      return matchesSearch && matchesCategory && matchesStatus;
-    });
-  }
-
-  getById(id) {
-    const incident = this.incidents.find((item) => item.id === id);
-
-    if (!incident) {
-      throw new AppError(404, "Incidente no encontrado");
+class IncidentsService{
+    constructor(){
+        this.incidents = structuredClone(seedIncidents);
     }
 
-    return incident;
-  }
+    async getAll(filters={}){
+        const{
+            search="",
+            category="all",
+            status="all",
+        }= filters;
 
-  getGeoJSON(filters = {}) {
-    return {
-      type: "FeatureCollection",
-      features: this.getAll(filters).map((incident) => ({
-        type: "Feature",
-        geometry: incident.location,
-        properties: {
-          id: incident.id,
-          title: incident.title,
-          category: incident.category,
-          description: incident.description,
-          status: incident.status,
-          createdAt: incident.createdAt,
-          updatedAt: incident.updatedAt,
+        let result = [...this.incidents];
+
+        const normalizedSearch = this.normalizeText(search);
+
+        if (normalizedSearch){
+            result = result.filter((incident)=>{
+                const searchableContent = this.normalizeText(
+                    `${incident.title} ${incident.description} ${incident.category}`
+                );
+                return searchableContent.includes(normalizedSearch);
+            });
+        }
+
+        if(category !== "all"){
+            result = result.filter(
+                (incident)=> incident.category === category
+            );
+        }
+
+        if(status !== "all"){
+            result = result.filter(
+                (incident)=> incident.status === status
+            );
+        }
+
+        //los más recientes aparecen primero
+        result.sort(
+            (first, second) =>
+                new Date(second.createdAt) - new Date(first.createdAt)
+        );
+        return result;
+    }
+
+    async getById(id){
+        const incident = this.incidents.find((incident)=> incident.id === id);
+        if(!incident){
+            throw new AppError(404, `no se encontro el incidente con ID ${id}`);
+        }
+        return incident;
+    }
+
+    //create
+    async create(data){
+        const newIncident = {
+            id: `INC-${randomUUID()}`,
+            title: data.title,
+            category: data.category,
+            description: data.description,
+            status: data.status,
+            location:{
+                type: "Point",
+
+                coordinates:[
+                    Number(data.longitude),
+                    Number(data.latitude)
+                ]
+            },
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
+        this.incidents.push(newIncident);
+        return newIncident;
+    }
+
+    async update(id, changes){
+        const index = this.incidents.findIndex((incident)=> incident.id === id);
+
+        if(index === -1){
+            throw new AppError(404, `no se encontro el incidente con ID ${id}`);
+        };
+
+        const currentIncident = this.incidents[index];
+
+        const currentLongitude = currentIncident.location.coordinates[0];
+
+        const currentLatitude = currentIncident.location.coordinates[1];
+
+        const updatedLongitude = 
+        changes.longitude !== undefined
+        ? Number(changes.longitude)
+        : currentLongitude;
+
+        const updatedLatitude =
+        changes.latitude !== undefined
+        ? Number(changes.latitude)
+        : currentLatitude;
+
+        const updatedIncident ={
+        ...currentIncident,
+
+        ...(changes.title !== undefined && {
+            title: changes.title.trim()
+        }),
+        
+        ...(changes.category !== undefined && {
+            category: changes.category.trim(),
+        }),
+        
+        ...(changes.description !== undefined && {
+            description: changes.description.trim(),
+        }),
+        
+        ...(changes.status !== undefined && {
+            status: changes.status.trim(),
+        }),
+
+        location:{
+            type: "Point",
+            coordinates:[
+                updatedLongitude,
+                updatedLatitude
+            ]
         },
-      })),
-    };
-  }
+        updatedAt: new Date().toISOString(),
+        };
 
-  create(data) {
-    const now = new Date().toISOString();
-
-    const incident = {
-      id: `INC-${randomUUID()}`,
-      title: data.title,
-      category: data.category,
-      description: data.description,
-      status: data.status ?? "pendiente",
-      location: structuredClone(data.location),
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    this.incidents.push(incident);
-
-    return incident;
-  }
-
-  update(id, changes) {
-    const incident = this.getById(id);
-
-    const allowedFields = [
-      "title",
-      "category",
-      "description",
-      "status",
-      "location",
-    ];
-
-    for (const field of allowedFields) {
-      if (changes[field] !== undefined) {
-        incident[field] =
-          field === "location"
-            ? structuredClone(changes[field])
-            : changes[field];
-      }
+        this.incidents[index]= updatedIncident;
+        return updatedIncident;
     }
 
-    incident.updatedAt = new Date().toISOString();
+    //delete
+    async delete(id){
+        const index = this.incidents.findIndex((incident)=> incident.id === id);
 
-    return incident;
-  }
+        if(index === -1){
+            throw new AppError(404, `no se encontro el incidente con ID ${id}`);
+        };
 
-  delete(id) {
-    const index = this.incidents.findIndex((item) => item.id === id);
-
-    if (index === -1) {
-      throw new AppError(404, "Incidente no encontrado");
+        const [deletedIncident] = this.incidents.splice(index, 1);
+        return deletedIncident;
     }
 
-    const [deletedIncident] = this.incidents.splice(index, 1);
+        async getGeoJSON(filters={}){
+            const incidents = await this.getAll(filters);
 
-    return deletedIncident;
-  }
+            return{
+                type:"FeatureCollection",
+                features: incidents.map((incident)=> ({
+                    type: "Feature",
+                    properties:{
+                        id: incident.id,
+                        title: incident.title,
+                        category: incident.category,
+                        description: incident.description,
+                        status: incident.status,
+                        createdAt: incident.createdAt,
+                        updatedAt: incident.updatedAt
+                    },
+                    geometry: incident.location
+                }))
+            }
+    }
+
+    normalizeText(value){
+        return String(value)
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim();
+    }
 }
 
-module.exports = new IncidentsService();
+module.exports = IncidentsService;

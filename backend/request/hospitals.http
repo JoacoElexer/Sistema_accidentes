@@ -16,6 +16,7 @@ GET {{base}}/HOS-001
 # @name create
 POST {{base}}
 Content-Type: application/json
+
 {
   "name": "Hospital CRUD",
   "type": "hospital",

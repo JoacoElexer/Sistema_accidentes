@@ -7,12 +7,17 @@ const stationsRouter = require("./stations.router");
 const busStopsRouter = require("./bus-stops.router");
 const camerasRouter = require("./cameras.router");
 
-const apiRouter = Router();
+function routerApi(app) {
+    const apiRouter = Router();
 
-apiRouter.use("/incidents", incidentsRouter);
-apiRouter.use("/hospitals", hospitalsRouter);
-apiRouter.use("/stations", stationsRouter);
-apiRouter.use("/bus-stops", busStopsRouter);
-apiRouter.use("/cameras", camerasRouter);
+    app.use("/api", apiRouter);
+    
+    apiRouter.use("/incidents", incidentsRouter);
+    apiRouter.use("/hospitals", hospitalsRouter);
+    apiRouter.use("/stations", stationsRouter);
+    apiRouter.use("/bus-stops", busStopsRouter);
+    apiRouter.use("/cameras", camerasRouter);
 
-module.exports = apiRouter;
+}
+
+module.exports = routerApi;

@@ -1,71 +1,72 @@
 "use strict";
 
-const incidents = [
+
+let incidents=[
     {
-        id: "INC-001",
-        title: "incendio en la vía pública",
-        category: "accidente",
-        description: "Bache profundo que dificulta el paso de vehiculos",
-        status: "pendiente",
+        id:"INC-001",
+        title:"Bache frente a la universidad",
+        category:"bache",
+        description:"Bache profundo que dificulta el paso de vehiculos",
+        status:"pendiente",
         location:{
             type:"Point",
-            coordinates:[-101.6812, 21.1248]
+            coordinates:[-101.6812,21.1248]
         },
-        createdAt: "2026-01-15T12:00:00.000Z",
-        updatedAt: "2026-01-15T12:00:00.000Z"
+        createdAt:"2026-01-15T12:00:00.000Z",
+        updatedAt:"2026-01-16T12:00:00.000Z"
     },
     {
-        id: "INC-002",
-        title: "Choque de autos",
-        category: "accidente",
-        description: "Choque de autos en la intersección de las calles 5 y 10",
-        status: "resuelto",
+        id:"INC-002",
+        title:"se cayo la luz",
+        category:"alumbrado",
+        description:"se cayo doña luz",
+        status:"pendiente",
         location:{
             type:"Point",
-            coordinates:[-101.6820, 21.1250]
+            coordinates:[-101.6842,21.1278]
         },
-        createdAt: "2026-01-16T12:00:00.000Z",
-        updatedAt: "2026-01-16T12:00:00.000Z"
+        createdAt:"2026-01-15T12:00:00.000Z",
+        updatedAt:"2026-01-16T12:00:00.000Z"
     },
     {
-        id: "INC-003",
-        title: "problemas con el alumbrado público",
-        category: "alumbrado",
-        description: "Falla en el sistema de alumbrado público en la calle principal",
-        status: "pendiente",
+        id:"INC-003",
+        title:"accidente jotas",
+        category:"accidente",
+        description:"me cai",
+        status:"pendiente",
         location:{
             type:"Point",
-            coordinates:[-101.6830, 21.1260]
+            coordinates:[-101.6842,21.1218]
         },
-        createdAt: "2026-01-17T12:00:00.000Z",
-        updatedAt: "2026-01-17T12:00:00.000Z"
+        createdAt:"2026-03-28T12:00:00.000Z",
+        updatedAt:"2026-03-29T12:00:00.000Z"
     },
     {
-        id: "INC-004",
-        title: "inundación en la zona baja",
-        category: "inundación",
-        description: "Inundación en la zona baja de la ciudad debido a lluvias intensas",
-        status: "pendiente",
+        id:"INC-004",
+        title:"UN TEPOROCHO EN FRENTE DE la universidad",
+        category:"basura",
+        description:"se llama andres y esta enfrente de la salle",
+        status:"pendiente",
         location:{
             type:"Point",
-            coordinates:[-101.6840, 21.1270]
+            coordinates:[-101.6782,21.1278]
         },
-        createdAt: "2026-01-18T12:00:00.000Z",
-        updatedAt: "2026-01-18T12:00:00.000Z"
+        createdAt:"2026-07-30T12:00:00.000Z",
+        updatedAt:"2026-07-31T12:00:00.000Z"
     },
     {
-        id: "INC-005",
-        title: "accidente de tránsito",
-        category: "accidente",
-        description: "Accidente de tránsito en la intersección de las calles 3 y 7",
-        status: "resuelto",
+        id:"INC-005",
+        title:"lo que tu gustes",
+        category:"fuga",
+        description:"no sirvio el poster para tapar la cañeria",
+        status:"pendiente",
         location:{
             type:"Point",
-            coordinates:[-101.6850, 21.1280]
+            coordinates:[-101.6743,21.1280]
         },
-        createdAt: "2026-01-19T12:00:00.000Z",
-        updatedAt: "2026-01-19T12:00:00.000Z"
-    }
+        createdAt:"2026-07-30T12:00:00.000Z",
+        updatedAt:"2026-07-31T12:00:00.000Z"
+    },
 ];
 
 module.exports = incidents;

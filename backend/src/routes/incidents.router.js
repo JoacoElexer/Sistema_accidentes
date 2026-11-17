@@ -1,68 +1,51 @@
 "use strict";
+const express= require('express');
 
-const { Router } = require("express");
-const incidentsService = require("../services/incidents.service");
-const validateIncident = require("../middlewares/incident.validator");
-const validateResource = require("../middlewares/resource.validator");
+const IncidentsService = require("../services/incidents.service")
 
-const router = Router();
+const{
+    validateIncidentPayload,
+    validateIncidentQuery,
+} = require("../middlewares/incident.validator")
 
-const getFilters = (query) => ({
-    search: query.search,
-    category: query.category,
-    status: query.status,
-});
+const router= express.Router();
+const service = new IncidentsService();
 
-router.get("/", async (req, res) => {
-    const data = await incidentsService.getAll(getFilters(req.query));
-    res.json({ success: true, total: data.length, data });
-});
+router.get("/", validateIncidentQuery, async (req, res, )=>{
+    const filters={
+        search: req.query.search,
+        category: req.query.category,
+        status: req.query.status
+    };
 
-router.get("/geojson", async (req, res) => {
-    res.json(await incidentsService.getGeoJSON(getFilters(req.query)));
-});
+    const incidents = await service.getAll(filters);
 
-router.get("/:id", (req, res) => {
-    res.json({ success: true, data: incidentsService.getById(req.params.id) });
-});
-
-router.post(
-    "/",
-    validateResource("incident"),
-    (req, res) => {
-        const data = incidentsService.create(req.body);
-
-        res.status(201).json({
-            success: true,
-            data,
-        });
-    }
-);
-
-
-router.patch(
-    "/:id",
-    validateResource("incident", "update"),
-    (req, res) => {
-        const data = incidentsService.update(req.params.id, req.body);
-
-        res.json({
-            success: true,
-            message: "Incidente actualizado correctamente",
-            data,
-        });
-    }
-);
-
-router.delete("/:id", async (req, res) => {
-    const data = await incidentsService.delete(req.params.id);
-
-    res.json({
-        success: true,
-        message: "Incidente eliminado correctamente",
-        data
+    res.status(200).json({
+        count: incidents.length,
+        data:incidents
     });
 });
 
+router.get("/geojson", validateIncidentQuery, async(req, res)=>{
+    const filters={
+        search: req.query.search,
+        category: req.query.category,
+        status: req.query.status
+    };
 
-module.exports = router;
+    const GeoJSON= await service.getGeoJSON(filters);
+
+    res.status(200).json(GeoJSON)
+})
+
+router.get("/:id", async(req, res)=>{
+    const {id}= req.params;
+
+    const incident = await service.getById(id);
+
+    res.status(200).json({
+        data: incident
+    })
+})
+
+module.exports= router;
